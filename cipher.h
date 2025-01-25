@@ -24,14 +24,15 @@ class Cipher : public QObject
     Q_OBJECT
 public:
     explicit Cipher(QObject *parent = nullptr);
+    ~Cipher();
 
     // loads the public key from a byte array
     RSA *getPublicKey(QByteArray &data);
     // loads the public key from a file
-    RSA *getPublicKey(QFile filename);
+    RSA *getPublicKey(QString filename);
 
     RSA *getPrivateKey(QByteArray &data);
-    RSA *getPrivateKey(QFile filename);
+    RSA *getPrivateKey(QString filename);
 
     // encrypts a byte arrray using the RSA public key
     QByteArray encryptRSA(RSA *key, QByteArray &data);
