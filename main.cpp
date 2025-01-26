@@ -67,9 +67,11 @@ void testRSA()
 
     QByteArray plain = "The man in black go into the forest and died";
     QByteArray encrypted = cWrapper.encryptRSA(publickey, plain);
+    QByteArray decrypted = cWrapper.decryptRSA(privatekey, encrypted);
 
     qDebug() << plain << "\n";
     qDebug() << encrypted.toBase64();
+    qDebug() << "\n" << decrypted;
 }
 
 

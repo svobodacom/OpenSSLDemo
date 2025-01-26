@@ -86,6 +86,7 @@ QByteArray Cipher::encryptRSA(RSA *key, QByteArray &data)
 
     unsigned char* ed = (unsigned char*)malloc(rsaLen);
 
+    // RSA_private_encrypt() - if you are encrypting with the private key
     int resultLen = RSA_public_encrypt(dataSize, (unsigned char*)str,ed,key, PADDING);
 
     if (resultLen == -1)
@@ -101,7 +102,23 @@ QByteArray Cipher::encryptRSA(RSA *key, QByteArray &data)
 
 QByteArray Cipher::decryptRSA(RSA *key, QByteArray &data)
 {
+    QByteArray buffer;
+    const unsigned char* encryptedData = (const unsigned char*)data.constData();
+    int rsaLen = RSA_size(key);
 
+    unsigned char* ed = (unsigned char*)malloc(rsaLen);
+
+    // RSA_public_decrypt() - if you are using the public key
+    int resultLen = RSA_private_decrypt(rsaLen, encryptedData, ed, key,PADDING);
+
+    if (resultLen == -1)
+    {
+        qCritical() << "Could not decrypt: " << ERR_error_string(ERR_get_error(), NULL);
+        return buffer;
+    }
+
+    buffer = QByteArray::fromRawData((const char*)ed, resultLen);
+    return buffer;
 }
 
 
