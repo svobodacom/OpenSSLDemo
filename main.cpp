@@ -54,10 +54,30 @@ QByteArray getPrivateKey()
     return testPrivateKey;
 }
 
+void testRSA()
+{
+    qDebug() << "Loading keys...";
+    QByteArray testPrivateKey = getPrivateKey();
+    QByteArray testPublicKey = getPublicKey();
+
+    Cipher cWrapper;
+
+    RSA* publickey = cWrapper.getPublicKey(testPublicKey);
+    RSA* privatekey = cWrapper.getPrivateKey(testPrivateKey);
+
+    QByteArray plain = "The man in black go into the forest and died";
+    QByteArray encrypted = cWrapper.encryptRSA(publickey, plain);
+
+    qDebug() << plain << "\n";
+    qDebug() << encrypted.toBase64();
+}
+
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+
+    testRSA();
 
     return a.exec();
 }

@@ -46,20 +46,56 @@ RSA *Cipher::getPublicKey(QString filename)
 
 RSA *Cipher::getPrivateKey(QByteArray &data)
 {
+    const char* privateKeyStr = data.constData();
+    BIO* bio = BIO_new_mem_buf((void*)privateKeyStr, -1);
+    BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL);
 
+    EVP_PKEY* evpKey = PEM_read_bio_PrivateKey(bio,NULL,NULL,NULL);
+
+    if (!evpKey)
+    {
+        qCritical() << "Could not load private key" << ERR_error_string(ERR_get_error(), NULL);
+    }
+
+    RSA* rsaPrivKey = EVP_PKEY_get1_RSA(evpKey);
+    if (!rsaPrivKey) {
+        qCritical() << "Could not extract RSA key" << ERR_error_string(ERR_get_error(), NULL);
+    }
+
+    BIO_free(bio);
+    EVP_PKEY_free(evpKey);
+    return rsaPrivKey;
 }
 
 
 RSA *Cipher::getPrivateKey(QString filename)
 {
+    QByteArray data = readFile(filename);
 
+    return getPrivateKey(data);
 }
 
 ////////////////////////////////////////////////////////////////////
 
 QByteArray Cipher::encryptRSA(RSA *key, QByteArray &data)
 {
+    QByteArray buffer;
+    int dataSize = data.length();
+    const unsigned char* str = (const unsigned char*)data.constData();
+    int rsaLen = RSA_size(key);
 
+    unsigned char* ed = (unsigned char*)malloc(rsaLen);
+
+    int resultLen = RSA_public_encrypt(dataSize, (unsigned char*)str,ed,key, PADDING);
+
+    if (resultLen == -1)
+    {
+        qCritical() << "Could not encrypt: " << ERR_error_string(ERR_get_error(), NULL);
+        return buffer;
+    }
+
+    buffer = QByteArray(reinterpret_cast<char*>(ed), resultLen);
+    return buffer;
 }
 
 
