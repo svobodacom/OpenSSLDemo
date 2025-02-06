@@ -77,21 +77,20 @@ void testRSA()
     cWrapper.freeRSAKey(privatekey);
 }
 
-
 void testAES()
 {
     qDebug() << "Testing AES...";
 
     Cipher cWrapper;
-    QString passphrase = "password";
-    QByteArray plain = "Today is 4 february 2025, the war still goes";
+    QString passphrase = "MyPassword";
+    QByteArray plain = "Soon the war should stop! Dont waste your money!!!";
 
     QByteArray encrypted = cWrapper.encryptAES(passphrase.toLatin1(), plain);
-    //QByteArray decrypted = cWrapper.decryptRSA(privatekey, encrypted);
+    QByteArray decrypted = cWrapper.decryptAES(passphrase.toLatin1(), encrypted);
 
     qDebug() << plain << "\n";
     qDebug() << encrypted.toBase64();
-    //qDebug() << "\n" << decrypted;
+    qDebug() << "\n" << decrypted;
 }
 
 
@@ -100,6 +99,7 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
 
     testAES();
+    //testRSA();
 
     return a.exec();
 }
