@@ -93,13 +93,101 @@ void testAES()
     qDebug() << "\n" << decrypted;
 }
 
+bool readFile(QString filename, QByteArray &data)
+{
+    QFile f(filename);
+
+    if (!f.open(QFile::ReadOnly))
+    {
+        qCritical() << "Could not open " << filename;
+        return false;
+    }
+
+    data = f.readAll();
+    f.close();
+    return true;
+}
+
+
+bool writeFile(QString filename, QByteArray &data)
+{
+    QFile f(filename);
+
+    if (!f.open(QFile::WriteOnly))
+    {
+        qCritical() << "Could not open " << filename;
+        return false;
+    }
+
+    f.write(data);
+    f.close();
+    return true;
+}
+
+
+bool encryptCombined()
+{
+    Cipher cWrapper;
+
+    // encrypt the AES key
+    QByteArray key = getPublicKey();
+    RSA* publickey = cWrapper.getPublicKey(key);
+
+    QByteArray passphrase = cWrapper.randomBytes(8).toBase64();
+    QByteArray encryptedKey = cWrapper.encryptRSA(publickey, passphrase);
+
+    qDebug() << "Encrypted AES key = " << encryptedKey;
+
+    // encrypt the data
+    QByteArray plain = "Today 8 february was relaxing spa procedures";
+    QByteArray encrypted = cWrapper.encryptAES(passphrase, plain);
+
+    QFile f("test.enc");
+
+    if (!f.open(QFile::WriteOnly))
+    {
+        qCritical() << "Could not open " << f.fileName();;
+        return false;
+    }
+
+    qDebug() << "Encrypted key length: " << encryptedKey.length();
+
+    QByteArray encryptedData;
+    encryptedData.append(encryptedKey);
+    encryptedData.append(encrypted);
+    f.write(encryptedData);
+    f.close();
+
+    qDebug() << "Encryption Finished";
+
+    return true;
+}
+
+
+bool decryptCombined()
+{
+
+
+    return true;
+}
+
+
+void testCombined()
+{
+    if (encryptCombined())
+    {
+        decryptCombined();
+    }
+}
+
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    testAES();
+    //testAES();
     //testRSA();
+    testCombined();
 
     return a.exec();
 }
