@@ -108,7 +108,6 @@ bool readFile(QString filename, QByteArray &data)
     return true;
 }
 
-
 bool writeFile(QString filename, QByteArray &data)
 {
     QFile f(filename);
@@ -124,7 +123,6 @@ bool writeFile(QString filename, QByteArray &data)
     return true;
 }
 
-
 bool encryptCombined()
 {
     Cipher cWrapper;
@@ -139,7 +137,7 @@ bool encryptCombined()
     qDebug() << "Encrypted AES key = " << encryptedKey;
 
     // encrypt the data
-    QByteArray plain = "Today 8 february was relaxing spa procedures";
+    QByteArray plain = "Today is 11 february and real winter coming, the lake is frozen";
     QByteArray encrypted = cWrapper.encryptAES(passphrase, plain);
 
     QFile f("test.enc");
@@ -159,18 +157,52 @@ bool encryptCombined()
     f.close();
 
     qDebug() << "Encryption Finished";
+    cWrapper.freeRSAKey(publickey);
 
     return true;
 }
-
 
 bool decryptCombined()
 {
+    Cipher cWrapper;
+    QByteArray data;
 
+    if (!readFile("test.enc", data))
+    {
+        qCritical() << "Could not open test.enc";
+        return false;
+    }
+
+    // load the encrypted key from the file
+    QByteArray header("Salted__");
+    int pos = data.indexOf(header);
+    if (pos == -1)
+    {
+        qCritical() << "Could not find the beginning of the encrypted file!";
+        return false;
+    }
+
+    qDebug() << header << " found at " << pos;
+
+    QByteArray encryptedKey = data.mid(0,256);
+    QByteArray encrypted = data.mid(256);
+
+    // decrypt the AES key
+    QByteArray key = getPrivateKey();
+    RSA* privateKey = cWrapper.getPrivateKey(key);
+    QByteArray passphrase = cWrapper.decryptRSA(privateKey, encryptedKey);
+    cWrapper.freeRSAKey(privateKey);
+
+    qDebug() << "Passphrase = " << passphrase;
+
+    // decrypt the data
+    QByteArray plain = cWrapper.decryptAES(passphrase, encrypted);
+    writeFile("originalText.txt", plain);
+
+    qDebug() << "Finished Decrypting!";
 
     return true;
 }
-
 
 void testCombined()
 {
@@ -180,6 +212,7 @@ void testCombined()
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char *argv[])
 {
