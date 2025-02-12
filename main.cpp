@@ -204,6 +204,61 @@ bool decryptCombined()
     return true;
 }
 
+
+void encryptCommandLine()
+{
+    QString passphrase = "password2025";
+    QByteArray plain = "11 febr - Hello from openssl command line!";
+    writeFile("file.txt", plain);
+
+    qDebug() << "Encrypting on the command line \n";
+    system("openssl aes-256-cbc -salt -md sha1 -in file.txt -out file.enc -pass pass:password2025");
+
+    qDebug() << "Decrypting with application";
+    Cipher cWrapper;
+    QByteArray encrypted;
+
+    if (!readFile("file.enc", encrypted))
+    {
+        qCritical() << "Could not open file.enc";
+        return;
+    }
+
+    QByteArray decrypted = cWrapper.decryptAES(passphrase.toLatin1(), encrypted);
+
+    if(!writeFile("file_decrypted.txt", decrypted))
+    {
+        qCritical() << "Could not write file_decrypted.txt";
+        return;
+    }
+
+    qDebug() << "Finished command line test...";
+}
+
+
+void decryptCommandLine()
+{
+    qDebug() << "Encrypting...";
+
+    Cipher cWrapper;
+    QString passphrase = "password2025";
+    QByteArray password = passphrase.toLatin1();
+    QByteArray plain = "Today is 12 february, usually working day...";
+
+    QByteArray encrypted = cWrapper.encryptAES(password, plain);
+
+    if(!writeFile("file.enc", encrypted))
+    {
+        qCritical() << "Could not open file.enc";
+        return;
+    }
+
+    qDebug() << "Decrypting...";
+    system("openssl aes-256-cbc -d -salt -md sha1 -in file.enc -out file2.txt -pass pass:password2025");
+    qDebug() << "Complete";
+}
+
+
 void testCombined()
 {
     if (encryptCombined())
@@ -220,7 +275,8 @@ int main(int argc, char *argv[])
 
     //testAES();
     //testRSA();
-    testCombined();
+    //testCombined();
+    decryptCommandLine();
 
     return a.exec();
 }
